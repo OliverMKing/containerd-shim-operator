@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -28,14 +29,58 @@ type ShimSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Shim. Edit shim_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// NodeSelector is a selector which should be true for nodes you want this Shim to run on.
+	// This should match a node's labels when you want the shim to run on that node. If this is
+	// empty, the shim will apply to all nodes.
+	// +required
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	// Source is the source of the shim
+	// +required
+	Source ShimSource `json:"source"`
+
+	// RuntimeClass is the name of the RuntimeClass to use for the shim
+	// +required
+	RuntimeClass string `json:"runtimeClass,omitempty"`
+
+	// RolloutStrategy is the strategy to use when rolling out the shim
+	// +required
+	RolloutStrategy ShimRolloutStrategy `json:"rolloutStrategy,omitempty"`
+
+	// TODO: how do upgrades work? we should have some way of upgrading the shim??
+}
+
+// Only one of its members may be specified
+type ShimSource struct {
+	// AnonymousHttp is a shim hosted at a URL which can be downloaded anonymously
+	AnonymousHttp *AnonymousHttpSource `json:"anonymousHttp,omitempty"`
+}
+
+type AnonymousHttpSource struct {
+	// Location is the URL of the shim's .tar.gz file
+	// +required
+	Location string `json:"location"`
+}
+
+// Only one of its members may be specified
+type ShimRolloutStrategy struct {
+	RollingRolloutStrategy *RollingRolloutStrategy `json:"rolling,omitempty"`
+}
+
+// Only one of its members may be specified
+type RollingRolloutStrategy struct {
+	// MaxUnavailable is the maximum number of nodes which may be unavailable at any given time
+	// Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%).
+	// +required
+	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable"`
 }
 
 // ShimStatus defines the observed state of Shim
 type ShimStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// TODO: we need to add lots of statuses here. Need to track current rollout status. Will likely look similar to Deployment status
 }
 
 //+kubebuilder:object:root=true

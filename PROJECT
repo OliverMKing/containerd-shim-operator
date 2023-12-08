@@ -10,7 +10,7 @@ repo: github.com/olivermking
 resources:
 - api:
     crdVersion: v1
-    namespaced: true
+    namespaced: false
   controller: true
   domain: k8s.containerd.io
   group: runtime

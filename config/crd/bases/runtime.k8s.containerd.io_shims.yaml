@@ -1,0 +1,93 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  name: shims.runtime.k8s.containerd.io
+spec:
+  group: runtime.k8s.containerd.io
+  names:
+    kind: Shim
+    listKind: ShimList
+    plural: shims
+    singular: shim
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Shim is the Schema for the shims API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ShimSpec defines the desired state of Shim
+            properties:
+              nodeSelector:
+                additionalProperties:
+                  type: string
+                description: NodeSelector is a selector which should be true for nodes
+                  you want this Shim to run on. This should match a node's labels
+                  when you want the shim to run on that node. If this is empty, the
+                  shim will apply to all nodes.
+                type: object
+              rolloutStrategy:
+                description: RolloutStrategy is the strategy to use when rolling out
+                  the shim
+                properties:
+                  rolling:
+                    description: Only one of its members may be specified
+                    properties:
+                      maxUnavailable:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        description: 'MaxUnavailable is the maximum number of nodes
+                          which may be unavailable at any given time Value can be
+                          an absolute number (ex: 5) or a percentage of desired pods
+                          (ex: 10%).'
+                        x-kubernetes-int-or-string: true
+                    required:
+                    - maxUnavailable
+                    type: object
+                type: object
+              runtimeClass:
+                description: RuntimeClass is the name of the RuntimeClass to use for
+                  the shim
+                type: string
+              source:
+                description: Source is the source of the shim
+                properties:
+                  anonymousHttp:
+                    description: AnonymousHttp is a shim hosted at a URL which can
+                      be downloaded anonymously
+                    properties:
+                      location:
+                        description: Location is the URL of the shim's .tar.gz file
+                        type: string
+                    required:
+                    - location
+                    type: object
+                type: object
+            required:
+            - source
+            type: object
+          status:
+            description: ShimStatus defines the observed state of Shim
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
