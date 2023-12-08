@@ -7,4 +7,14 @@ layout:
 - go.kubebuilder.io/v4
 projectName: containerd-shim-operator
 repo: github.com/olivermking
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: k8s.containerd.io
+  group: runtime
+  kind: Shim
+  path: github.com/olivermking/api/v1alpha1
+  version: v1alpha1
 version: "3"
