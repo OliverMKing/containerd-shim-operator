@@ -22,9 +22,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	runtimev1alpha1 "github.com/olivermking/api/v1alpha1"
+)
+
+const (
+	// finalizer is the name of the finalizer added to the shim CR
+	finalizer = "shim.runtime.k8s.containerd.io/finalizer"
 )
 
 // ShimReconciler reconciles a Shim object
@@ -47,9 +53,38 @@ type ShimReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.0/pkg/reconcile
 func (r *ShimReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	lgr := log.FromContext(ctx).WithValues("shim", req.NamespacedName)
 
-	// TODO(user): your logic here
+	shim := &runtimev1alpha1.Shim{}
+	if err := r.Get(ctx, req.NamespacedName, shim); err != nil {
+		// logged at Info because we can get things queued on deleted objects
+		lgr.Info("unable to fetch Shim", "error", err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if shim.ObjectMeta.DeletionTimestamp.IsZero() { // object is not being deleted, ensure finalizer
+		if !controllerutil.ContainsFinalizer(shim, finalizer) {
+			controllerutil.AddFinalizer(shim, finalizer)
+			if err := r.Update(ctx, shim); err != nil {
+				lgr.Error(err, "unable to update Shim with finalizer")
+				return ctrl.Result{}, err
+			}
+		}
+	} else { // object is being deleted, cleanup resources then remove finalizer
+		if controllerutil.ContainsFinalizer(shim, finalizer) {
+			// TODO: cleanup resources
+
+			controllerutil.RemoveFinalizer(shim, finalizer)
+			if err := r.Update(ctx, shim); err != nil {
+				lgr.Error(err, "unable to remove finalizer from Shim")
+				return ctrl.Result{}, err
+			}
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	// TODO: add reconcile logic
 
 	return ctrl.Result{}, nil
 }
