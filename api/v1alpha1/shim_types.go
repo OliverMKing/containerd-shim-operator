@@ -60,6 +60,9 @@ type AnonymousHttpSource struct {
 	// Location is the URL of the shim's .tar.gz file
 	// +required
 	Location string `json:"location"`
+	// File is the name of the file inside the .tar.gz which contains the shim
+	// +required
+	File string `json:"file"`
 }
 
 // Only one of its members may be specified

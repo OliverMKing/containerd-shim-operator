@@ -73,10 +73,15 @@ spec:
                     description: AnonymousHttp is a shim hosted at a URL which can
                       be downloaded anonymously
                     properties:
+                      file:
+                        description: File is the name of the file inside the .tar.gz
+                          which contains the shim
+                        type: string
                       location:
                         description: Location is the URL of the shim's .tar.gz file
                         type: string
                     required:
+                    - file
                     - location
                     type: object
                 type: object
