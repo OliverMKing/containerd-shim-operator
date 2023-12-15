@@ -83,7 +83,36 @@ type ShimStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// TODO: we need to add lots of statuses here. Need to track current rollout status. Will likely look similar to Deployment status
+	// The generation observed by the controller
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	// Conditions is an array of current observed conditions
+	// +optional
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions"`
+
+	// TODO: need to figure out a more deterministic way of doing this
+	// TODO: should we do this or is a label on the node enough?
+
+	// UpgradedNodes is a list of nodes which have been upgraded to the latest version of the shim
+	UpgradedNodes []NodeReference `json:"upgradedNodes,omitempty"`
+	// UpgradingNodes is a list of nodes which are currently being upgraded to the latest version of the shim
+	UpgradingNodes []NodeReference `json:"upgradingNodes,omitempty"`
+	// QueuedNodes is a list of nodes which are queued to be upgraded to the latest version of the shim
+	QueuedNodes []NodeReference `json:"queuedNodes,omitempty"`
+}
+
+type NodeReference struct {
+	// Name is the name of the node
+	// +required
+	Name string `json:"name"`
+	// UID is the UID of the node
+	// +required
+	UID string `json:"uid"`
 }
 
 //+kubebuilder:object:root=true
